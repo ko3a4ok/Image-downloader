@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Download-er/re-size</string>
+    <string name="start_service">Start service</string>
+    <string name="stop_service">Stop service</string>
+    <string name="empty_url">URL shouldn\'t be empty</string>
+    <string name="not_valid_url">URL is not valid</string>
+    <string name="failed">Failed</string>
+    <string name="delete">Delete</string>
+    <string name="network_problem">Failed on file downloading</string>
+    <string name="storing_problem">Failed on image storing</string>
+    <string name="service_not_started">Service is not started</string>
+
+</resources>
