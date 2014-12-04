@@ -8,8 +8,12 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 
 import java.io.InputStream;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MyService extends Service {
     public static final String LINK = "link";
@@ -20,6 +24,8 @@ public class MyService extends Service {
     private boolean stopped;
 
     private MyApplication application;
+    private ExecutorService poolExecutor;
+
     public MyService() {
     }
 
@@ -32,25 +38,27 @@ public class MyService extends Service {
     public void onCreate() {
         super.onCreate();
         application = (MyApplication) getApplication();
+        poolExecutor = Executors.newFixedThreadPool(6);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         stopped = true;
+        poolExecutor.shutdownNow();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent.hasExtra(LINK)) {
             String link = intent.getStringExtra(LINK);
-            new Downloader(link).start();
+            poolExecutor.execute(new Downloader(link));
         }
         return super.onStartCommand(intent, flags, startId);
     }
 
 
-    private class Downloader extends Thread {
+    private class Downloader implements Runnable {
         private String link;
         ImageHolder ih;
 
@@ -68,13 +76,14 @@ public class MyService extends Service {
                     URLConnection conn = url.openConnection();
                     conn.connect();
                     int len = conn.getContentLength();
-                    byte[] img = new byte[len];
+                    Reference<ImageBuffer> ib = new SoftReference<ImageBuffer>(new ImageBuffer(len));
+
                     InputStream input = conn.getInputStream();
                     int total = 0;
                     int count;
                     byte[] buf = new byte[0x500];
                     while ((count = input.read(buf)) != -1) {
-                        System.arraycopy(buf, 0, img, total, count);
+                        System.arraycopy(buf, 0, ib.get().buf, total, count);
                         total += count;
                         int percentage = 100 * total / len;
                         ih.setPercentage(percentage);
@@ -84,7 +93,7 @@ public class MyService extends Service {
                             return;
                         }
                     }
-                    ih.setRawData(img);
+                    ih.setRawData(ib.get().buf);
                 }
                 ih.setPercentage(100);
                 saveImage(ih.getRawData());
@@ -120,6 +129,14 @@ public class MyService extends Service {
             b.recycle();
             String uri = Utils.saveImage(MyService.this, result);
             ih.setUri(uri);
+        }
+    }
+
+    class ImageBuffer {
+
+        byte[] buf;
+        ImageBuffer(int size) {
+            buf = new byte[size];
         }
     }
 

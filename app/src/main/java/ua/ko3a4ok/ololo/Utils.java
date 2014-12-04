@@ -1,5 +1,7 @@
 package ua.ko3a4ok.ololo;
 
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -38,8 +40,16 @@ public class Utils {
     }
 
     public static String saveImage(Context ctx, Bitmap bm) {
-        String fileName = "IMG_"+System.currentTimeMillis() + ".png";
+        if (!ifMemoryEnough(ctx, bm.getHeight()*bm.getWidth()*4*2)) throw new OutOfMemoryError();
+        String fileName = "IMG_"+System.nanoTime() + ".png";
         return MediaStore.Images.Media.insertImage(ctx.getContentResolver(), bm, fileName, "");
+    }
+
+    private static boolean ifMemoryEnough(Context ctx, int amount) {
+        ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
+        ActivityManager activityManager = (ActivityManager) ctx.getSystemService(Activity.ACTIVITY_SERVICE);
+        activityManager.getMemoryInfo(mi);
+        return mi.availMem > amount;
     }
 
     public static void sendLinkToServer(Context ctx, String link) {
