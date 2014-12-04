@@ -28,14 +28,11 @@ public class MyService extends Service {
         return null;
     }
 
-
     @Override
     public void onCreate() {
         super.onCreate();
         application = (MyApplication) getApplication();
     }
-
-
 
     @Override
     public void onDestroy() {
@@ -47,8 +44,7 @@ public class MyService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent.hasExtra(LINK)) {
             String link = intent.getStringExtra(LINK);
-            if (!application.isExist(link) || application.getImageHolder(link).isFailed())
-                new Downloader(link).start();
+            new Downloader(link).start();
         }
         return super.onStartCommand(intent, flags, startId);
     }
@@ -65,13 +61,12 @@ public class MyService extends Service {
         }
         @Override
         public void run() {
-            URL url = null;
+            URL url;
             try {
                 if (ih.getRawData() == null) {
                     url = new URL(link);
                     URLConnection conn = url.openConnection();
                     conn.connect();
-
                     int len = conn.getContentLength();
                     byte[] img = new byte[len];
                     InputStream input = conn.getInputStream();
@@ -95,6 +90,7 @@ public class MyService extends Service {
                 saveImage(ih.getRawData());
                 updateUi();
             } catch (OutOfMemoryError e) {
+                e.printStackTrace();
                 failed();
                 System.gc();
             } catch (Exception e) {

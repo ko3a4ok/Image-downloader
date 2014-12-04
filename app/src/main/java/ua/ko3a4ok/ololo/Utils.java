@@ -1,6 +1,7 @@
 package ua.ko3a4ok.ololo;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.provider.MediaStore;
@@ -12,10 +13,6 @@ import android.provider.MediaStore;
 public class Utils {
     /**
      * stolen from http://developer.android.com/training/displaying-bitmaps/load-bitmap.html
-     * @param options
-     * @param reqWidth
-     * @param reqHeight
-     * @return
      */
     public static int calculateInSampleSize(
             BitmapFactory.Options options, int reqWidth, int reqHeight) {
@@ -42,7 +39,13 @@ public class Utils {
 
     public static String saveImage(Context ctx, Bitmap bm) {
         String fileName = "IMG_"+System.currentTimeMillis() + ".png";
-        return MediaStore.Images.Media.insertImage(ctx.getContentResolver(),bm,fileName,"");
+        return MediaStore.Images.Media.insertImage(ctx.getContentResolver(), bm, fileName, "");
+    }
+
+    public static void sendLinkToServer(Context ctx, String link) {
+        final Intent sendLinkIntent = new Intent(ctx, MyService.class);
+        sendLinkIntent.putExtra(MyService.LINK, link);
+        ctx.startService(sendLinkIntent);
     }
 }
 
