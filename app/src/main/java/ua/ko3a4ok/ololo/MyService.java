@@ -91,7 +91,7 @@ public class MyService extends Service {
                     while ((count = input.read(buf)) != -1) {
                         System.arraycopy(buf, 0, ib.get().buf, total, count);
                         total += count;
-                        int percentage = 100 * total / len;
+                        int percentage = (int) (100l * total / len);
                         ih.setPercentage(percentage);
                         updateUi(MyService.this);
                         if (stopped) {

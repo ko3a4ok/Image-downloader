@@ -11,10 +11,10 @@ import android.widget.EditText;
 import ua.ko3a4ok.ololo.MyActivity;
 import ua.ko3a4ok.ololo.R;
 
-public class MyActivityTest extends ActivityInstrumentationTestCase2<MyActivity> {
+public class PerformanceTest extends ActivityInstrumentationTestCase2<MyActivity> {
 
 
-    public MyActivityTest() {
+    public PerformanceTest() {
         super(MyActivity.class);
     }
 
