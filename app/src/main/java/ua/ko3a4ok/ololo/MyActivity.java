@@ -1,9 +1,12 @@
 package ua.ko3a4ok.ololo;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -33,10 +36,28 @@ public class MyActivity extends ActionBarActivity {
             adapter.notifyDataSetChanged();
         }
     };
+
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            binder = (MyService.MyBinder) service;
+            btn.setEnabled(true);
+            application.setServiceRunning(true);
+            if (serviceItem != null)
+                serviceItem.setTitle(R.string.stop_service);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            binder = null;
+        }
+    };
+
     private MyApplication application;
 
     private long previousBackPressTime = 0;
 
+    MyService.MyBinder binder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +69,6 @@ public class MyActivity extends ActionBarActivity {
         adapter = new MyAdapter(this, application);
         ((ListView)findViewById(android.R.id.list)).setAdapter(adapter);
         startService();
-        application.setServiceRunning(true);
     }
 
     @Override
@@ -61,6 +81,13 @@ public class MyActivity extends ActionBarActivity {
     protected void onPause() {
         super.onPause();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (application.isServiceRunning())
+            unbindService(serviceConnection);
     }
 
     @Override
@@ -85,6 +112,7 @@ public class MyActivity extends ActionBarActivity {
 
     private void stopService() {
         final Intent SERVICE_INTENT = new Intent(this, MyService.class);
+        unbindService(serviceConnection);
         stopService(SERVICE_INTENT);
         serviceItem.setTitle(R.string.start_service);
         application.setServiceRunning(false);
@@ -94,11 +122,7 @@ public class MyActivity extends ActionBarActivity {
     private void startService() {
         final Intent SERVICE_INTENT = new Intent(this, MyService.class);
         startService(SERVICE_INTENT);
-        btn.setEnabled(true);
-        application.setServiceRunning(true);
-        if (serviceItem != null)
-            serviceItem.setTitle(R.string.stop_service);
-        btn.setEnabled(true);
+        bindService(SERVICE_INTENT, serviceConnection, 0);
     }
 
     public void onDownload(View v) {
@@ -120,7 +144,7 @@ public class MyActivity extends ActionBarActivity {
         application.addTask(link);
         adapter.notifyDataSetChanged();
         if (!isExist || ih.isFailed())
-            Utils.sendLinkToServer(this, link);
+            Utils.sendLinkToServer(binder, link);
     }
 
 

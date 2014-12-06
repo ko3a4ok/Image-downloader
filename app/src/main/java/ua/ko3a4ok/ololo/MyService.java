@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -19,7 +20,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MyService extends Service {
-    public static final String LINK = "link";
     private static final long MIN_REFRESH_INTERVAL = 300;
     private static final Intent UPDATE_UI_INTENT = new Intent(MyActivity.REFRESH_DATA);
 
@@ -31,13 +31,14 @@ public class MyService extends Service {
     private static volatile boolean emptyBatch = true;
     private MyApplication application;
     private ExecutorService poolExecutor;
+    private IBinder binder = new MyBinder();
 
     public MyService() {
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return binder;
     }
 
     @Override
@@ -52,15 +53,6 @@ public class MyService extends Service {
         super.onDestroy();
         stopped = true;
         poolExecutor.shutdownNow();
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent.hasExtra(LINK)) {
-            String link = intent.getStringExtra(LINK);
-            poolExecutor.execute(new Downloader(link));
-        }
-        return super.onStartCommand(intent, flags, startId);
     }
 
 
@@ -155,5 +147,13 @@ public class MyService extends Service {
         }
     }
 
+    public class MyBinder extends Binder {
+
+        public void loadLink(String link) {
+            poolExecutor.execute(new Downloader(link));
+        }
+
+
+    }
 
 }

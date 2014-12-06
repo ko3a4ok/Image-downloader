@@ -52,10 +52,9 @@ public class Utils {
         return mi.availMem > amount;
     }
 
-    public static void sendLinkToServer(Context ctx, String link) {
-        final Intent sendLinkIntent = new Intent(ctx, MyService.class);
-        sendLinkIntent.putExtra(MyService.LINK, link);
-        ctx.startService(sendLinkIntent);
+    public static void sendLinkToServer(MyService.MyBinder binder, String link) {
+        if (binder != null)
+            binder.loadLink(link);
     }
 }
 

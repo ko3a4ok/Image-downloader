@@ -64,7 +64,7 @@ public class MyAdapter extends ArrayAdapter<String>  {
                 @Override
                 public void onClick(View v) {
                     if (application.isServiceRunning())
-                        Utils.sendLinkToServer(ctx, link);
+                        Utils.sendLinkToServer(((MyActivity)ctx).binder, link);
                     else
                         Toast.makeText(ctx, R.string.service_not_started, Toast.LENGTH_LONG).show();
                 }
