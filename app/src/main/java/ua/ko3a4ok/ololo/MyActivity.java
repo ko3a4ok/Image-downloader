@@ -1,13 +1,11 @@
 package ua.ko3a4ok.ololo;
 
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.Handler;
 import android.os.IBinder;
-import android.support.v4.content.LocalBroadcastManager;
+import android.os.ResultReceiver;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -30,9 +28,9 @@ public class MyActivity extends ActionBarActivity {
     private View btn;
     private MenuItem serviceItem;
     private BaseAdapter adapter;
-    private BroadcastReceiver receiver = new BroadcastReceiver() {
+    private ResultReceiver receiver = new ResultReceiver(new Handler()) {
         @Override
-        public void onReceive(Context context, Intent intent) {
+        public void onReceiveResult(int resultCode, Bundle resultData) {
             adapter.notifyDataSetChanged();
         }
     };
@@ -71,23 +69,14 @@ public class MyActivity extends ActionBarActivity {
         startService();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, new IntentFilter(REFRESH_DATA));
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
-    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (application.isServiceRunning())
+        if (application.isServiceRunning()) {
+            binder.clearReceiver();
             unbindService(serviceConnection);
+        }
     }
 
     @Override
@@ -121,6 +110,7 @@ public class MyActivity extends ActionBarActivity {
 
     private void startService() {
         final Intent SERVICE_INTENT = new Intent(this, MyService.class);
+        SERVICE_INTENT.putExtra(MyService.RECEIVER, receiver);
         startService(SERVICE_INTENT);
         bindService(SERVICE_INTENT, serviceConnection, 0);
     }

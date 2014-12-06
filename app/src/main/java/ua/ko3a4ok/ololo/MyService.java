@@ -1,13 +1,12 @@
 package ua.ko3a4ok.ololo;
 
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Binder;
 import android.os.IBinder;
-import android.support.v4.content.LocalBroadcastManager;
+import android.os.ResultReceiver;
 
 import java.io.InputStream;
 import java.lang.ref.Reference;
@@ -21,10 +20,10 @@ import java.util.concurrent.Executors;
 
 public class MyService extends Service {
     private static final long MIN_REFRESH_INTERVAL = 300;
-    private static final Intent UPDATE_UI_INTENT = new Intent(MyActivity.REFRESH_DATA);
 
     private static final int W = 320;
     private static final int H = 480;
+    public static final String RECEIVER = "receiver";
 
     private boolean stopped;
 
@@ -32,6 +31,7 @@ public class MyService extends Service {
     private MyApplication application;
     private ExecutorService poolExecutor;
     private IBinder binder = new MyBinder();
+    private ResultReceiver receiver;
 
     public MyService() {
     }
@@ -46,6 +46,12 @@ public class MyService extends Service {
         super.onCreate();
         application = (MyApplication) getApplication();
         poolExecutor = Executors.newFixedThreadPool(6);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        receiver = intent.getParcelableExtra(RECEIVER);
+        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
@@ -127,14 +133,15 @@ public class MyService extends Service {
         }
     }
 
-    private static synchronized void updateUi(final Context ctx) {
+    private static synchronized void updateUi(final MyService service) {
         if (!emptyBatch) return;
         emptyBatch = false;
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 emptyBatch = true;
-                LocalBroadcastManager.getInstance(ctx).sendBroadcast(UPDATE_UI_INTENT);
+                if (service.receiver != null)
+                    service.receiver.send(0, null);
             }
         }, MIN_REFRESH_INTERVAL);
     }
@@ -153,7 +160,9 @@ public class MyService extends Service {
             poolExecutor.execute(new Downloader(link));
         }
 
-
+        public void clearReceiver() {
+            receiver = null;
+        }
     }
 
 }
