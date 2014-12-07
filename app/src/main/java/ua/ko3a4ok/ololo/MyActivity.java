@@ -133,7 +133,7 @@ public class MyActivity extends ActionBarActivity {
         application.addTask(link);
         adapter.notifyDataSetChanged();
         if (!isExist || ih.isFailed())
-            Utils.sendLinkToServer(binder, link);
+            Utils.startDownloadImage(binder, link);
     }
 
 

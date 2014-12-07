@@ -52,7 +52,7 @@ public class Utils {
         return mi.availMem > amount;
     }
 
-    public static void sendLinkToServer(MyService.MyBinder binder, String link) {
+    public static void startDownloadImage(MyService.MyBinder binder, String link) {
         if (binder != null)
             binder.loadLink(link);
     }

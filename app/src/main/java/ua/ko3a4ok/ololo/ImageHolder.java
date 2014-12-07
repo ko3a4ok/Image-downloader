@@ -28,6 +28,7 @@ public class ImageHolder {
 
     public void setUri(String uri) {
         this.uri = uri;
+        rawData = null;
     }
 
     public void setFailed(boolean failed) {

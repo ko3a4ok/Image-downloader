@@ -25,8 +25,6 @@ public class MyService extends Service {
     private static final int H = 480;
     public static final String RECEIVER = "receiver";
 
-    private boolean stopped;
-
     private static volatile boolean emptyBatch = true;
     private MyApplication application;
     private ExecutorService poolExecutor;
@@ -57,7 +55,6 @@ public class MyService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        stopped = true;
         poolExecutor.shutdownNow();
     }
 
@@ -75,7 +72,7 @@ public class MyService extends Service {
         public void run() {
             URL url;
             try {
-                if (ih.getRawData() == null) {
+                if (ih.getRawData() == null && ih.getUri() == null) {
                     url = new URL(link);
                     URLConnection conn = url.openConnection();
                     conn.connect();
@@ -92,7 +89,7 @@ public class MyService extends Service {
                         int percentage = (int) (100l * total / len);
                         ih.setPercentage(percentage);
                         updateUi(MyService.this);
-                        if (stopped) {
+                        if (poolExecutor.isShutdown()) {
                             failed();
                             return;
                         }

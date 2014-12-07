@@ -30,19 +30,13 @@ public class MyAdapter extends ArrayAdapter<String>  {
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
         int type = getItemViewType(position);
+        if (type == IMAGE_TYPE) return getImageView(convertView, position);
+        return getLoadingView(super.getView(position, convertView, parent), position);
+    }
+
+    private View getLoadingView(View convertView, final int position) {
         final String link = getItem(position);
         ImageHolder ih = application.getImageHolder(link);
-        if (type == IMAGE_TYPE) {
-            if (convertView == null) {
-                convertView = ((Activity)ctx).getLayoutInflater().inflate(R.layout.image_item, null);
-                convertView.setTag(new ImageViewHolder(convertView));
-            }
-            ImageViewHolder ivh = (ImageViewHolder) convertView.getTag();
-            ivh.name.setText(link);
-            ivh.image.setImageURI(Uri.parse(ih.getUri()));
-            return convertView;
-        }
-        convertView = super.getView(position, convertView, parent);
         if (convertView.getTag() == null) {
             convertView.setTag(new ViewHolder(convertView));
         }
@@ -64,7 +58,7 @@ public class MyAdapter extends ArrayAdapter<String>  {
                 @Override
                 public void onClick(View v) {
                     if (application.isServiceRunning())
-                        Utils.sendLinkToServer(((MyActivity)ctx).binder, link);
+                        Utils.startDownloadImage(((MyActivity) ctx).binder, link);
                     else
                         Toast.makeText(ctx, R.string.service_not_started, Toast.LENGTH_LONG).show();
                 }
@@ -74,6 +68,21 @@ public class MyAdapter extends ArrayAdapter<String>  {
             holder.failedLayout.setVisibility(View.GONE);
         }
         return convertView;
+    }
+
+    private View getImageView(View convertView, int position) {
+        if (convertView == null) {
+            convertView = ((Activity)ctx).getLayoutInflater().inflate(R.layout.image_item, null);
+            convertView.setTag(new ImageViewHolder(convertView));
+        }
+        final String link = getItem(position);
+        ImageHolder ih = application.getImageHolder(link);
+
+        ImageViewHolder ivh = (ImageViewHolder) convertView.getTag();
+        ivh.name.setText(link);
+        ivh.image.setImageURI(Uri.parse(ih.getUri()));
+        return convertView;
+
     }
 
     @Override
