@@ -21,7 +21,6 @@ import android.widget.Toast;
 
 public class MyActivity extends ActionBarActivity {
 
-    public static final String REFRESH_DATA = "refresh";
     public static final int BACK_PRESS_TIMEOUT = 1000;
 
     private EditText url;
